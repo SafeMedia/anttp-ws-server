@@ -1,23 +1,23 @@
+# use official Node.js base image
 FROM node:20-alpine
 
-# install dependencies needed for anttp
-RUN apk add --no-cache git bash
-
-# install anttp globally (you may want to pin a version)
-RUN npm install -g anttp
-
+# create app directory
 WORKDIR /app
 
-# copy package.json and package-lock.json and install deps
+# copy package.json and package-lock.json
 COPY package*.json ./
+
+# install dependencies
 RUN npm install
 
-# Copy source files
-COPY src ./src
+# oopy source code
+COPY . .
 
-# build typescript
+# build the TypeScript code
 RUN npm run build
 
+# Expose the port (default 8080)
 EXPOSE 8080
 
-CMD ["node", "dist/server.js"]
+# start the server
+CMD ["npm", "start"]
