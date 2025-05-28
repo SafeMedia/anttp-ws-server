@@ -5,7 +5,7 @@ import fetch, { Response as FetchResponse } from "node-fetch";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 const ANTPP_ENDPOINT =
-    process.env.ANTPP_ENDPOINT || "http://localhost:3000/archive";
+    process.env.ANTPP_ENDPOINT || "http://localhost:8081/archive";
 const XORNAME_REGEX = /^[a-f0-9]{64}$/i;
 
 type FetchJob = { address: string; ws: WebSocket };
