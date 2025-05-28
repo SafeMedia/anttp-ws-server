@@ -69,6 +69,7 @@ function processQueue() {
             job.ws.send(data); // Send raw binary
         })
         .catch((err) => {
+            console.error(`❌ Error fetching from ANTPP: ${err.message}`);
             job.ws.send(`error fetching: ${err.message}`);
         })
         .finally(() => {
