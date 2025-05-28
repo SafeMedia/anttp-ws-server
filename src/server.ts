@@ -61,12 +61,29 @@ function processQueue() {
     activeJobs++;
 
     fetchWithTimeout(`${ANTPP_ENDPOINT}/${job.address}`, TIMEOUT_MS)
-        .then((res) => {
+        .then(async (res) => {
             if (!res.ok) throw new Error(`http ${res.status}`);
-            return res.arrayBuffer();
-        })
-        .then((data) => {
-            job.ws.send(data); // Send raw binary
+
+            const mimeType =
+                res.headers.get("content-type") || "application/octet-stream";
+            const buffer = await res.arrayBuffer();
+
+            // Prepare JSON metadata
+            const metadata = JSON.stringify({ mimeType });
+            const metadataBuffer = Buffer.from(metadata, "utf-8");
+
+            // 4-byte header for metadata length
+            const headerBuffer = Buffer.alloc(4);
+            headerBuffer.writeUInt32BE(metadataBuffer.length, 0);
+
+            // Final payload: [header][metadata][binary]
+            const combined = Buffer.concat([
+                headerBuffer,
+                metadataBuffer,
+                Buffer.from(buffer),
+            ]);
+
+            job.ws.send(combined);
         })
         .catch((err) => {
             console.error(`❌ Error fetching from ANTPP: ${err.message}`);
