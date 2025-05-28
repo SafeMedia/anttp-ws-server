@@ -63,10 +63,10 @@ function processQueue() {
     fetchWithTimeout(`${ANTPP_ENDPOINT}/${job.address}`, TIMEOUT_MS)
         .then((res) => {
             if (!res.ok) throw new Error(`http ${res.status}`);
-            return res.text();
+            return res.arrayBuffer();
         })
         .then((data) => {
-            job.ws.send(data);
+            job.ws.send(data); // Send raw binary
         })
         .catch((err) => {
             job.ws.send(`error fetching: ${err.message}`);
