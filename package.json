@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "WebSocket server for fetching files from autonomi network using anttp",
   "type": "module",
-  "main": "server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js"
