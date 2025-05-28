@@ -12,6 +12,9 @@ RUN apk add --no-cache \
   cmake \
   pkgconfig
 
+# Install rustfmt for nightly toolchain
+RUN rustup component add rustfmt
+
 # Clone AntTP repo
 WORKDIR /build
 RUN git clone https://github.com/traktion/AntTP.git anttp
