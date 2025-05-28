@@ -38,7 +38,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-EXPOSE 8080 8081
+EXPOSE 8081
 
-CMD ["sh", "-c", "anttp --port 8081 & npm start"]
+CMD ["sh", "-c", "anttp & npm start"]
+
 
