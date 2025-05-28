@@ -1,23 +1,30 @@
 # use official Node.js base image
 FROM node:20-alpine
 
+# Install git and other dependencies
+RUN apk add --no-cache git
+
+# Clone and build AntTP
+RUN git clone https://github.com/traktion/AntTP.git /anttp \
+    && cd /anttp \
+    && npm install \
+    && npm run build
+
 # create app directory
 WORKDIR /app
 
-# copy package.json and package-lock.json
+# Copy server code
 COPY package*.json ./
-
-# install dependencies
 RUN npm install
-
-# oopy source code
 COPY . .
-
-# build the TypeScript code
 RUN npm run build
 
-# Expose the port (default 8080)
+# Expose the AntTP port and WebSocket server port
+EXPOSE 3000
 EXPOSE 8080
 
-# start the server
-CMD ["npm", "start"]
+# Start both AntTP and your WebSocket server using a process manager
+RUN npm install -g concurrently
+CMD concurrently \
+    "node /anttp/dist/index.js" \
+    "npm start"
