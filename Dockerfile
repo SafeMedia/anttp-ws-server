@@ -1,25 +1,25 @@
-# Use official Node.js and Rust base image
-FROM rust:1.77-alpine AS builder
+# Stage 1: Build AntTP using Rust nightly
+FROM rustlang/rust:nightly-alpine as builder
 
-# Install build tools and Git
-RUN apk add --no-cache git musl-dev gcc nodejs npm
+# Install build dependencies
+RUN apk add --no-cache git musl-dev gcc
 
-# Clone and build AntTP
+# Clone AntTP repo
 WORKDIR /build
 RUN git clone https://github.com/traktion/AntTP.git anttp
+
+# Build AntTP in release mode
 WORKDIR /build/anttp
 RUN cargo build --release
 
-# Now move to a separate Node.js image for the final app
+# Stage 2: Final image with Node.js server + built AntTP
 FROM node:20-alpine
 
-# Copy the built AntTP binary from the builder
+# Copy AntTP binary from builder stage
 COPY --from=builder /build/anttp/target/release/anttp /usr/local/bin/anttp
-
-# Make sure it's executable
 RUN chmod +x /usr/local/bin/anttp
 
-# Set up Node.js app
+# Set up your Node.js app
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -27,8 +27,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Expose the server port
+# Expose your server port
 EXPOSE 8080
 
-# Start both AntTP and your Node.js app
+# Start both AntTP and your server
 CMD ["sh", "-c", "anttp & npm start"]
