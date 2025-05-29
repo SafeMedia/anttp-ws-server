@@ -33,10 +33,13 @@ wss.on("connection", (ws, req) => {
         const address = message.toString().trim();
         console.log(`📩 Message received: ${address}`);
 
-        if (!XORNAME_REGEX.test(address)) {
+        // Validate that the first path segment is a valid XOR name
+        const [xorname] = address.split("/");
+        if (!XORNAME_REGEX.test(xorname)) {
             return ws.send("invalid address format");
         }
 
+        // Entire path (e.g., xorname/foo/bar.png) is passed to the fetcher
         queue.push({ address, ws });
         processQueue();
     });
