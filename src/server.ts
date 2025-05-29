@@ -2,11 +2,13 @@ import http from "http";
 import { WebSocketServer } from "ws";
 import type { WebSocket } from "ws";
 import fetch, { Response as FetchResponse } from "node-fetch";
+import path from "path";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8081;
-const ANTPP_ENDPOINT =
-    process.env.ANTPP_ENDPOINT || "http://localhost:8080/archive";
-const XORNAME_REGEX = /^[a-f0-9]{64}$/i;
+const ANTPP_ENDPOINT = process.env.ANTPP_ENDPOINT || "http://localhost:8080/";
+
+// This allows paths like: abcdef...64/filename.png or deeper (e.g. /images/file.png)
+const PATH_REGEX = /^[a-f0-9]{64}(\/[\w\-._~:@!$&'()*+,;=]+)*$/i;
 
 type FetchJob = { address: string; ws: WebSocket };
 const queue: FetchJob[] = [];
@@ -14,17 +16,17 @@ let activeJobs = 0;
 const MAX_CONCURRENT = 5;
 const TIMEOUT_MS = 10000;
 
-// Create HTTP server for Railway
+// Create HTTP server for Railway or standalone use
 const server = http.createServer((req, res) => {
     res.writeHead(200);
     res.end("✨ WebSocket server is live ✨");
 });
 
-// Attach WebSocket server to the HTTP server
+// Attach WebSocket server
 const wss = new WebSocketServer({ server });
 console.log(`✅ WebSocket server initialized.`);
 
-// Handle connections
+// Handle new connections
 wss.on("connection", (ws, req) => {
     const ip = req.socket.remoteAddress || "unknown";
     console.log(`👤 Client connected from ${ip}`);
@@ -33,13 +35,11 @@ wss.on("connection", (ws, req) => {
         const address = message.toString().trim();
         console.log(`📩 Message received: ${address}`);
 
-        // Validate that the first path segment is a valid XOR name
-        const [xorname] = address.split("/");
-        if (!XORNAME_REGEX.test(xorname)) {
+        // Basic validation: regex + no ".."
+        if (!PATH_REGEX.test(address) || address.includes("..")) {
             return ws.send("invalid address format");
         }
 
-        // Entire path (e.g., xorname/foo/bar.png) is passed to the fetcher
         queue.push({ address, ws });
         processQueue();
     });
@@ -49,12 +49,12 @@ wss.on("connection", (ws, req) => {
     });
 });
 
-// Start listening
+// Start server
 server.listen(PORT, () => {
     console.log(`✅ HTTP + WebSocket server running on port ${PORT}`);
 });
 
-// Job processing
+// Main job processing loop
 function processQueue() {
     if (activeJobs >= MAX_CONCURRENT || queue.length === 0) return;
 
@@ -69,9 +69,6 @@ function processQueue() {
 
             const mimeType =
                 res.headers.get("content-type") || "application/octet-stream";
-
-            console.log("mimeType: ", mimeType);
-            console.log("res: ", res);
 
             const buffer = await res.arrayBuffer();
 
@@ -102,7 +99,7 @@ function processQueue() {
         });
 }
 
-// Fetch with timeout
+// Fetch helper with timeout
 async function fetchWithTimeout(
     url: string,
     timeoutMs: number
