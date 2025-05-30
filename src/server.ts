@@ -70,6 +70,9 @@ function processQueue() {
             const mimeType =
                 res.headers.get("content-type") || "application/octet-stream";
 
+            console.log("mimeType: ", mimeType);
+            console.log("res: ", res);
+
             const buffer = await res.arrayBuffer();
 
             // Prepare JSON metadata
