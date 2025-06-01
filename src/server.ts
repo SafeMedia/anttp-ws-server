@@ -22,6 +22,9 @@ const server = http.createServer((req, res) => {
     res.end("✨ WebSocket server is live ✨");
 });
 
+// Start server
+server.headersTimeout = 120000; // 120 seconds (2 minutes)
+
 // Attach WebSocket server
 const wss = new WebSocketServer({ server });
 console.log(`✅ WebSocket server initialized.`);
@@ -49,7 +52,6 @@ wss.on("connection", (ws, req) => {
     });
 });
 
-// Start server
 server.listen(PORT, () => {
     console.log(`✅ HTTP + WebSocket server running on port ${PORT}`);
 });
