@@ -14,7 +14,7 @@ type FetchJob = { address: string; ws: WebSocket };
 const queue: FetchJob[] = [];
 let activeJobs = 0;
 const MAX_CONCURRENT = 5;
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 60000;
 
 // Create HTTP server for Railway or standalone use
 const server = http.createServer((req, res) => {
