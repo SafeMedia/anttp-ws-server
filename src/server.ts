@@ -78,7 +78,10 @@ function processQueue() {
             const buffer = await res.arrayBuffer();
 
             // Prepare JSON metadata
-            const metadata = JSON.stringify({ mimeType });
+            const metadata = JSON.stringify({
+                mimeType,
+                xorname: job.address,
+            });
             const metadataBuffer = Buffer.from(metadata, "utf-8");
 
             // 4-byte header for metadata length
